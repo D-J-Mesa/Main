@@ -1,0 +1,311 @@
+#include <iostream>
+#include "Point.h"
+#include <string>
+#include <fstream>
+using namespace std;
+
+ 
+class Node { // basic node that has the four characteristics and gets ready to point to the next node. / constructor : DONE
+public:
+    string name;
+    bool necessity;
+    int minamount;
+    int maxamount;
+    bool process;
+    Node* next;
+
+    Node(string name, bool necessity, int minamount, int maxamount) { // constructor : 
+        this->name = name;
+        this->necessity = necessity;
+        this->minamount = minamount;
+        this->maxamount = maxamount;
+        this->process = false;
+        this->next = nullptr;
+    }
+};
+
+class InfoProcessor { // main class for all functions taking place with the Nodes
+    private:
+        Node* head;
+
+
+    public:
+        InfoProcessor() {
+            head = nullptr;
+        }
+// create function to insert at the end: DONE
+void InsertNode(string name, bool necessity, int minamount, int maxamount) {
+
+    Node* newNode = new Node(name, necessity, minamount, maxamount);
+    
+    if (head == nullptr) {
+        head = newNode;
+    }
+    else {
+        Node* temp = head;
+        while (temp->next != nullptr) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+
+    
+}
+
+// delete function based off name DONE
+void Delete(string name) {
+    if (head == nullptr) { // check if list is empty 
+        cout << "List is empty, Gotta add stuff to buy to budget for stuff to buy" << endl;
+        return;
+    }
+    Node* temp = head;
+    if (head->name == name) { // if its the head of the function delete it.
+        head = head->next;
+        delete temp;
+        cout << "Node " << name << " has been deleted." << endl;
+        return;
+    }
+
+    while (temp->next != nullptr && temp->next->name != name) {
+        temp = temp->next;
+    }
+
+    if (temp->next == nullptr) {
+        cout << "Node not found! Check your spelling or you might just be crazy..." << endl;
+    }
+    // at this point temp is the object before the target for deletion.
+    Node* deletenode = temp->next; // says that this deletenode is the target node
+    temp->next = temp->next->next; // the next node becomes the node after it
+    delete deletenode; // deletion
+    cout << "Node " << name << " has been deleted." << endl; // confirmation
+}
+// create function to return list values: DONE
+void GetNodeValue() {
+    Node* temp = head;
+    while (temp != nullptr) {
+        cout << "Name: " << temp->name << endl << "Necessary: " << (temp->necessity ? "Yes" : "No") << endl << "Mininmum Amount: " << temp->minamount << endl <<  "Maximum Amount: " << temp->maxamount << endl;
+        temp = temp->next;
+    }
+}
+// create function to edit values : DONE
+void EditValue(string name, bool newnecessity, int newmin, int newmax) {
+    Node* temp = head;
+
+    while (temp != nullptr) {
+        if (temp->name == name) {
+            temp->necessity = newnecessity;
+            temp->minamount = newmin;
+            temp->maxamount = newmax;
+            cout << "Node now updated!" << endl;
+            return;
+        }
+        temp = temp->next;
+    }
+    cout << "Couldnt find the node.... RutRoh" << endl;
+}
+void SavingsTime(string happyword) {
+        int total = 0;
+        for (int i = 0; i < happyword.length(); i++) {
+            char currchar = happyword[i];
+            total += currchar;
+        }
+        cout << "Lovely, now that we translated your word into numbers we get... " << endl;
+        cout << total << "... uh ooooooh... What should we extract it from?" << endl;
+        
+        Node* node = head;
+        while (node != nullptr) {
+            if (!node->processed && node->necessity && node->maxamount != 0) {
+                node->maxamount -= total;
+                node->minamount -= total;
+                NewSavings->maxamount += total;
+                NewSavings->minamount += total;
+                node->processed = true;
+                break;
+            }
+        }
+        cout << "Eenie, Meanie, Miney, " << node->name << endl;
+
+
+        cout << "Would you like to go again? Yes or No" << endl;
+        string repeatanswer;
+        cin >> repeatanswer;
+        if (repeatanswer == "Yes") {
+            SavingsTime(happyword);
+        }
+}
+void HappinessTime(string sadword) {
+        int total = 0;
+        for (int i = 0; i < sadword.length(); i++) {
+            char currchar = sadword[i];
+            total += currchar;
+        }
+        cout << "Lovely, now that we translated your word into numbers we get... " << endl;
+        cout << total << "... uh ooooooh... What should we extract it from?" << endl;
+        
+        Node* node = head;
+        while (node != nullptr) {
+            if (!node->processed && !node->necessity && node->maxamount != 0) {
+                node->maxamount -= total;
+                node->minamount -= total;
+                node->processed = true;
+            }
+
+            node = node->next;
+        }
+        
+        cout << "Eenie, Meanie, Miney, " << node->name << endl;
+
+        cout << "Now we need to add it to something fun..." << endl;
+
+        cout << "I know!" << endl;
+
+        InsertNode("MonkeyMemorabilia", false, 0, 0); // Create a new node for MonkeyMemorabilia
+        Node* monkeyNode = head;
+        while (monkeyNode->name != "MonkeyMemorabilia") {
+            monkeyNode = monkeyNode->next;
+        }   
+        monkeyNode->minamount += total;
+        monkeyNode->maxamount += total;
+
+        cout << "Would you like to go again? Yes or No" << endl;
+        string repeatanswer;
+        cin >> repeatanswer;
+        if (repeatanswer == "Yes") {
+            HappinessTime(sadword);
+        }
+}
+
+void SaveandExit(const string* filename) {
+    ofstream outputfile(filename);
+    if (!outputfile) {
+        cout << "Couldnt open it womp womp" << endl;
+        return;
+    }
+
+    Node* temp =  head;
+    while (temp != nullptr) {
+        outputfile << "Name: " << temp->name << endl;
+        outputfile << "Necessary: " << (temp->necessity ? "Yes" : "No") << endl;
+        outputfile << "Minimum Amount: " << temp->minamount << endl;
+        outputfile << "Maximum Amount: " << temp->maxamount << endl;
+        temp = temp->next
+    }
+
+    outputfile.close();
+    cout << "Data Saved. Have a good day!" << endl;
+    return 0;
+}
+
+
+};
+
+int main() {
+    cout << "Please Input file or Enter Yes for a walkthrough: " << endl;
+
+    string filename;
+    cin >> filename;
+    
+    int budget;
+
+    if (filename == "Yes") {
+    
+        cout << "What would you like to name your budget?" < endl;
+        cin >> filename;
+
+        ofstream outputfile(filename);
+
+        if (!file) {
+            bool trigger = false;
+            while (!trigger) {
+                cout << "Could Not Open File. Please pick a different file name" << endl;
+                cin >> filename;
+                if (outputfile) {
+                    trigger = true;
+                }
+        }
+            
+        }
+
+        cout << "First what is your budget?" << endl;
+        cin >> budget;
+        cout << "Please enter your budget list with the following syntax" endl:
+        cout << "Name, Necessary: Yes or No, Min Amount, Max Amount." << endl;
+        cout << "Example: Groceries Yes 400 500" << endl;
+
+        string name, nescessitySTR;
+        int minamount, maxamount;
+        bool necessary;
+        while (true) { // linked list grabbing info
+            cin >> name >> necessitySTR >> minamount >> maxamount;
+            necessary = (necessitySTR == "Yes");
+            InfoProcessor.InsertNode(name, necessary, minamount, maxamount);
+        }
+    }
+    // after getting every option present different ways to approach the budget
+    cout << "Now that we have your file what would you like to do?" << endl;
+    cout << "Commands: " << endl;
+    cout << "Add" << endl;
+    cout << "Delete" << endl;
+    cout << "Print" << endl;
+    cout << "Modify" << endl;
+    cout << "Increase Savings" << endl;
+    cout << "Increase Happiness" << endl;
+    cout << "Save and Exit" << endl; 
+    
+
+    // while loop that checks until save and exit command
+    string UserCommand;
+    cin >> UserCommand;
+    while (UserCommand != "Save and Exit") {
+        if (UserCommand == "Add") {
+            string necessitySTR;
+            cin >> name >> necessitySTR >> minamount >> maxamount;
+            necessary = (necessitySTR == "Yes");
+            InfoProcessor.InsertNode(name, necessitySTR, minamount, maxamount);
+        }
+        else if (UserCommand == "Delete") {
+            cout << "Please enter the node you want to be destroyed" << endl;
+            cin >> name;
+            InfoProcessor.Delete(name);
+        }
+        else if (UserCommand == "Print") {
+            InfoProcessor.GetNodeValue();
+        }
+        else if (UserCommand == "Modify") {
+            cout << "Please edit the node you wish, with the following syntax." << endl;
+            cout << "Name Necessary Minimum Maximum" << endl;
+            cin >> name >> necessary >> minimum >> maximum;
+            InfoProcessor.EditValue(name, necessary, minimum, maximum);
+        }
+        else if (UserCommand == "Increase Savings") { // part of the permutation requirement. 
+            cout << "So you want to increase your wealth. Great! Lets get started." << endl;
+            cout << "First give me a word. Any word." << endl // picking a word multiplying the amount of letters based on their alphabetical value
+            string happyword;
+            cin >> happyword;
+
+            InfoProcessor.InsertNode("NewSavings", "Yes", "0", "0");
+            InfoProcessor.SavingsTime(happyword);
+        }
+        else if (UserCommand == "Increase Happiness") { // 2nd part of the permutation requirement.
+            cout << "So you want to increase your happiness? Okay... Lets get started." << endl;
+            cout << "First give me a word. Any word" << endl;
+            string sadword;
+            cin >> sadword;
+            
+            InfoProcessor.InsertNode("MonkeyMemorabilia", "Yes", "0" "0");
+            InfoProcessor.HappinessTime(sadword)
+        }
+        else if (UserCommand == "Save and Exit") {
+            cout << "Thanks for playing with my budgeting tool!" << endl;
+            InfoProcessor.SaveandExit(filename);
+        }
+
+
+
+
+    }
+
+
+
+    }
+
