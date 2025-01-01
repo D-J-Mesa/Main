@@ -1,0 +1,225 @@
+// Chat bubble, not yet finished but if working properly displays a chat bubble that then disappears.
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class NPC_ChatBubble : MonoBehaviour
+     public float Timer = 5f;
+
+{
+
+   void Update()
+   {
+        //if (Player.position.x)
+
+
+
+
+        if ((Player.position.x >= NPC.position.x - 10) && (Player.position.x <= NPC.position.x + 10)) && ((Player.position.y >= NPC.position.y - 10) && (Player.position.y <= NPC.position.y + 10))
+        {
+            if (Chat.SetActive == true)
+            {
+                // checks if the timer is done IE fade out of chat bubble
+            }
+            else
+            {
+                Chat.SetActive(true);
+            }
+
+        }
+
+   }
+}
+
+/ dialogue / interaction system
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.IO;
+using UnityEngine.UI;
+
+public class InteractInput : MonoBehaviour
+{
+    public GameObject Player;
+    public GameObject InteractionBackground;
+    public GameObject Profile;
+    public GameObject Joystick;
+    public Testing_mouse_movement mouse_Movement;
+    public Text Dialogue; 
+    public Text NameText; 
+    public bool initflag = false;
+    private StreamReader GetReadey;
+    private string lastDialogue = "";
+
+    public InteractButton interactButtonScript;
+
+    void Start()
+    {
+        if (interactButtonScript != null && File.Exists(interactButtonScript.filepath))
+        {
+            // Use the filepath from InteractButton
+            GetReadey = new StreamReader(interactButtonScript.filepath);
+        }
+        else
+        {
+            Debug.LogError("No GotDang dialogue file or InteractButton script is not set");
+        }
+    }
+
+    public void OnButtonPressed()
+    {
+        mouse_Movement.enabled = false;
+        Joystick.SetActive(false);
+        InteractionBackground.SetActive(true);
+
+
+        if (!initflag)
+        {
+            string imagename = GetReadey.ReadLine();
+            string dname = GetReadey.ReadLine();
+            NameText.text = dname;
+
+            Sprite sprite = Resources.Load<Sprite>(imagename);
+            if (sprite != null)
+            {
+                Profile.GetComponent<Image>().sprite = sprite;
+            }
+            else
+            {
+                Debug.LogError("Uh Oh No Image. We need this at Line 46!");
+            }
+
+            StartCoroutine(DialogueMeAnother());
+            initflag = true;
+        }
+        else
+        {
+            if (!GetReadey.EndOfStream)
+            {
+                Dialogue.text = "";
+                string imagename = GetReadey.ReadLine();
+                string dname = GetReadey.ReadLine();
+                NameText.text = dname;
+
+                Sprite sprite = Resources.Load<Sprite>(imagename);
+                if (sprite != null)
+                {
+                    Profile.GetComponent<Image>().sprite = sprite;
+                }
+
+                StartCoroutine(DialogueMeAnother());
+            }
+            else
+            {
+                Dialogue.text = lastDialogue;
+                StartCoroutine(DialogueMeAnother());
+                InteractionBackground.SetActive(false);
+                Joystick.SetActive(true);
+                mouse_Movement.enabled = true;
+            }
+        }
+    }
+
+    IEnumerator DialogueMeAnother()
+    {
+        string dialogueText = GetReadey.ReadLine();
+
+        if (dialogueText != null)
+        {
+            lastDialogue = dialogueText;
+
+            for (int i = 0; i < dialogueText.Length; i++)
+            {
+                Dialogue.text += dialogueText[i];
+                yield return new WaitForSeconds(0.05f);
+            }
+        }
+        else
+        {
+            Dialogue.text = lastDialogue;
+            yield return new WaitForSeconds(0.5f);
+            StartCoroutine(DialogueMeAnother());
+        }
+    }
+}
+
+// interact button
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class InteractButton : MonoBehaviour
+{
+    public GameObject Player;
+    public GameObject interactButton;
+    public string filepath;
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject == Player)
+        {
+            interactButton.SetActive(true);
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.gameObject == Player)
+        {
+            interactButton.SetActive(false);
+        }
+    }
+}
+
+// interact with doors
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class DoorScript : MonoBehaviour
+{
+
+    public GameObject Darkness;
+    public GameObject Player;
+    public float positionx1;
+    public float positiony1;
+    public float positionx2;
+    public float positiony2;
+    private bool flag;
+    private SpriteRenderer darknessRenderer;
+
+    // Start is called before the first frame update
+    /*public void OnButtonPressed()
+    {
+        if (flag = false)
+        {
+            while (Darkness.color.A < 255)
+            {
+                Darkness.color.A += 25;
+            }
+            Player.position.x = positionx1;
+            Player.position.y = positiony1;
+
+            while (Darkness.colorA > 0)
+            {
+                Darkness.color.A -= 25;
+            }
+        }
+
+        else
+        {
+            while (Darkness.color.A < 255)
+            {
+                Darkness.color.A += 25;
+            }
+            Player.position.x = positionx2;
+            Player.position.y = positiony2;
+
+            while (Darkness.colorA > 0)
+            {
+                Darkness.color.A -= 25;
+            }
+        }
+   }
+} */
+}
