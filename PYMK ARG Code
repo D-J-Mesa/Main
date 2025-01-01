@@ -1,1 +1,43 @@
+// player movement
+using UnityEngine;
+
+public class Player_Mover : MonoBehaviour
+{
+    public float speed = 5.0f;
+
+    void Update()
+    {
+        // Temporary keyboard input for testing
+        float moveX = Input.GetAxis("Horizontal"); // Arrow keys or A/D
+        float moveY = Input.GetAxis("Vertical");   // Arrow keys or W/S
+
+        // Apply movement
+        Vector3 movement = new Vector3(moveX, 0, moveY) * speed * Time.deltaTime;
+        transform.Translate(movement, Space.World);
+
+    }
+}
+// mouse movement
+using UnityEngine;
+
+public class Testing_mouse_movement : MonoBehaviour
+{
+    public float speed = 5.0f;
+
+    void Update()
+    {
+        Vector3 mousePosition = Input.mousePosition;
+        mousePosition.z = Camera.main.nearClipPlane; 
+        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition); 
+
+       
+        Vector3 direction = (mousePosition - transform.position).normalized;
+
+        
+        direction.z = 0;
+
+        
+        transform.position += direction * speed * Time.deltaTime;
+    }
+}
 
