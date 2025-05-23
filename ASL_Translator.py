@@ -8,7 +8,7 @@ import threading
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
-#this project is an ASL Translator. Capable of opening a webcame and being to recognize signs shown in real time. Overall it needs improvement and a bigger dataset however, for now it works with about an 81.81% accuracy.
+#this project is an ASL Translator. Capable of opening a webcame and being to recognize signs shown in real time. Overall it needs improvement and a bigger dataset however, for now it works with about a 91.91% accuracy.
 
 
 
