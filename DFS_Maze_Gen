@@ -1,0 +1,187 @@
+# Adapted from: https://www.reddit.com/r/godot/comments/uakvk2/simple_tilemap_random_maze_generation_example/
+
+extends Node2D
+
+# Configuration
+var width := 20 
+var height := 20 
+@onready var tile_map: TileMap = $Wall
+@onready var wall_scene = preload("res://Wall_Scene.tscn")  # main wall texture
+
+const WALL_TILE = 1
+const floor_types = {
+	"BASIC": 0
+} 
+
+var wall_types = { 
+	"straight": 0,
+	"cross":  1,
+	"left_t": 2,
+	"right_t": 3,
+	"bottom_t": 4,
+	"top_t": 5,
+	"CORNER_BOTTOM_LEFT": 6,
+	"CORNER_BOTTOM_RIGHT": 7,
+	"CORNER_TOP_LEFT": 8,
+	"CORNER_TOP_RIGHT": 9,
+}
+
+func _ready():
+	var start = Vector2(2,5)
+	generate_maze(start)
+
+func generate_maze(start: Vector2):
+	var visited : Array
+	var search_stack : Array
+	var connections = {}
+	
+	
+	for x in width:
+		for y in height:
+			var grid_pos = Vector2i(x, y)
+			tile_map.set_cell(0, grid_pos, WALL_TILE)
+			place_wall_instance(grid_pos, 0) # Place default walls at each position
+	
+	var all_points = []
+	for i in range(width * height):
+		var x = i % width
+		var y = i / width
+		var point = Vector2(x, y)
+		all_points.append(point)
+		connections[point] = 0b0000  # Bitmask allowing for different types of textures and matching with other walls
+	
+	# Start from starting point
+	search_stack = [start]
+	visited = [start]
+	
+	while search_stack.size() > 0: #Depth First Search start
+		var current = search_stack.back()
+		var neighbors = get_valid_neighbors(current, visited)
+		
+		if neighbors.size() > 0:
+			var next = neighbors[randi() % neighbors.size()]
+			var wall_between = (current + next) / 2
+			
+			# Set path and remove wall instances
+			tile_map.set_cell(0, wall_between, FLOOR_TILE)
+			place_floor_instance(tile_map.set_cell(0, next, ))
+			remove_wall_instance(wall_between)  # Remove wall scene between cells
+			remove_wall_instance(next)  # Remove wall scene at path
+			
+			# Update connections
+			var dir = next - current
+			connections[current] = set_connection(connections[current], dir)
+			connections[next] = set_connection(connections[next], -dir)
+			
+			visited.append(next)
+			search_stack.append(next)
+		else:
+			search_stack.pop_back()
+
+func place_surface_instance(grid_pos: Vector2, connection_bits, surface_type):
+	scene_map = {
+		"floor": floor_scene,
+		"wall": wall_scene,
+	}
+	var  = scene_map[type].instantiate()
+	var tile_size = Vector2(tile_map.tile_set.tile_size)  # Convert to Vector2
+	surface_type.position = Vector2(grid_pos) * tile_size
+	wall.set_wall_type(connection_bits)
+	wall.name = "Wall_%d_%d" % [grid_pos.x, grid_pos.y]
+	add_child(wall)
+	
+func remove_wall_instance(grid_pos: Vector2):
+	var wall_name = "Wall_%d_%d" % [grid_pos.x, grid_pos.y]
+	
+	var wall = get_node_or_null(wall_name)
+	
+	if wall:
+		wall.queue_free()
+func set_wall_type(connection_bits: int):
+	var type = "straight"  # Default fallback
+
+	match connection_bits:
+		0b1111:
+			type = "cross"
+		0b0011, 0b1100:
+			type = "straight"
+
+		# T-junctions
+		0b0111:
+			type = "left_t"
+		0b1011:
+			type = "right_t"
+		0b1110:
+			type = "bottom_t"
+		0b1101:
+			type = "top_t"
+
+		# Corners
+		0b0101:
+			type = "CORNER_TOP_LEFT"
+		0b1001:
+			type = "CORNER_TOP_RIGHT"
+		0b0110:
+			type = "CORNER_BOTTOM_LEFT"
+		0b1010:
+			type = "CORNER_BOTTOM_RIGHT"
+
+		0b0001:
+			type = "top_t"
+		0b0010:
+			type = "bottom_t"
+		0b0100:
+			type = "left_t"
+		0b1000:
+			type = "right_t"
+			
+	var tile_size = Vector2i(32, 32) # multiply each cord to get to the next region
+	var index = wall_types.get(type, 0)
+	wall_scene.region_rect = Rect2i(index * tile_size.x, 0, tile_size.x, tile_size.y)
+	
+func set_floor_type(connection_bits: int):
+
+	var type = "BASIC"  # Default fallback
+	'''
+	match connection_bits:
+		0b1111:
+			type = "FLOOR_"
+	'''
+	var tile_size = Vector2i(32, 32) 
+	var index = wall_types.get(type, 0)
+	wall_scene.region_rect = Rect2i(index * tile_size.x, 0, tile_size.x, tile_size.y)
+	
+func get_valid_neighbors(tile: Vector2, visited: Array) -> Array:
+	var directions = [
+		Vector2.UP * 2,
+		Vector2.DOWN * 2,
+		Vector2.LEFT * 2,
+		Vector2.RIGHT * 2
+	]
+	var neighbors = []
+	
+	for dir in directions:
+		var pos = tile + dir
+		if pos.x > 0 and pos.x < width - 1 and pos.y > 0 and pos.y < height - 1:
+			if not visited.has(pos):
+				neighbors.append(pos)
+	return neighbors
+
+func set_connection(connection_bits, direction):
+	match direction:
+		Vector2(0, -2):  # Up
+			return connection_bits | 0b1000
+		Vector2(0, 2):   # Down
+			return connection_bits | 0b0100
+		Vector2(2, 0):   # Right
+			return connection_bits | 0b0010
+		Vector2(-2, 0):  # Left
+			return connection_bits | 0b0001
+		_:
+			return connection_bits
+
+func set_width(value):
+	width = int(max(5, value))
+	
+func set_height(value):
+	height = int(max(5, value))
