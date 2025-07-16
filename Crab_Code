@@ -1,0 +1,120 @@
+#include <Stepper.h>
+#include <IRremote.h>
+
+const int STEPS_PER_REV = 2048;
+Stepper legs_F(STEPS_PER_REV, 8, 10, 9, 11);
+Stepper legs_M(STEPS_PER_REV, A0, A2, A1, A3);
+Stepper legs_B(STEPS_PER_REV, 3, 5, 4, 6);
+
+const int L_light = A3;
+const int M_light = A4;
+const int R_light = A5;
+
+const int IR_RECEIVE_PIN = 2;
+IRrecv irrecv(IR_RECEIVE_PIN);
+decode_results results;
+
+const int longstep = 180;
+const int midstep = 120;
+const int shortstep = 60;
+
+const int STEPPER_SPEED = 10;
+
+const unsigned long IR_LEFT = 0xF708FF00;
+const unsigned long IR_RIGHT = 0xA55AFF00;
+const unsigned long IR_AUTOMATIC = 0xFF02FD00;
+
+bool autoMode = false;
+
+void stationaryPhase(bool isRightSideActive) {
+  if (isRightSideActive) {
+    legs_F.step(-shortstep);
+    legs_M.step(midstep);
+    legs_B.step(-shortstep);
+  } else {
+    legs_F.step(shortstep);
+    legs_M.step(-midstep);
+    legs_B.step(shortstep);
+  }
+}
+
+void reachPhase(bool isRightSideActive) {
+  if (isRightSideActive) {
+    legs_F.step(longstep * 0.5);
+    legs_M.step(-longstep * 1.5);
+    legs_B.step(longstep * 0.5);
+  } else {
+    legs_F.step(-longstep * 0.5);
+    legs_M.step(longstep * 1.5);
+    legs_B.step(-longstep * 0.5);
+  }
+}
+
+void goTowardsDarkness() {
+  int left = analogRead(L_light);
+  int mid = analogRead(M_light);
+  int right = analogRead(R_light);
+
+  Serial.print("Light: L="); Serial.print(left);
+  Serial.print(" M="); Serial.print(mid);
+  Serial.print(" R="); Serial.println(right);
+
+  if (abs(left - right) < 100 && abs(mid - left) < 100) {
+    stationaryPhase(true);
+    delay(200);
+    stationaryPhase(false);
+  } else if (left > right + 150) {
+    reachPhase(true);
+    stationaryPhase(false);
+  } else if (right > left + 150) {
+    reachPhase(false);
+    stationaryPhase(true);
+  } else {
+    int darkest = min(left, min(mid, right));
+    if (darkest == left) {
+      reachPhase(true);
+      stationaryPhase(false);
+    } else if (darkest == right) {
+      reachPhase(false);
+      stationaryPhase(true);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  legs_F.setSpeed(STEPPER_SPEED);
+  legs_M.setSpeed(STEPPER_SPEED);
+  legs_B.setSpeed(STEPPER_SPEED);
+  irrecv.enableIRIn();
+  Serial.println("System Ready.");
+}
+
+void loop() {
+  if (irrecv.decode(&results)) {
+    Serial.print("Received: 0x"); Serial.println(results.value, HEX);
+
+    if (results.value == IR_LEFT) {
+      Serial.println("IR: Move Left");
+      reachPhase(false);
+      stationaryPhase(true);
+    }
+    else if (results.value == IR_RIGHT) {
+      Serial.println("IR: Move Right");
+      reachPhase(true);
+      stationaryPhase(false);
+    }
+    else if (results.value == IR_AUTOMATIC) {
+      autoMode = !autoMode;
+      Serial.print("Auto Mode: ");
+      Serial.println(autoMode ? "ON" : "OFF");
+    }
+
+    irrecv.resume();
+  }
+
+  if (autoMode) {
+    goTowardsDarkness();
+    delay(100);
+  }
+}
