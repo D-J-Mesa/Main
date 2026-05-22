@@ -14,3 +14,37 @@ public:
 
     }
 };
+13. Roman To Integer
+class Solution(object):
+    def romanToInt(self, s):
+        numerals = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+        count = 0
+        for i in range(len(s)):
+            if i > 0 and s[i] == "V" and s[i - 1] == "I":
+                count += 3
+                continue
+            elif i > 0 and s[i] == "X" and s[i - 1] == "I":
+                count += 8
+                continue
+            elif i > 0 and s[i] == "L" and s[i - 1] == "X":
+                count += 30
+                continue
+            elif i > 0 and s[i] == "C" and s[i - 1] == "X":
+                count += 80
+                continue
+            elif i > 0 and s[i] == "D" and s[i - 1] == "C":
+                count += 300
+                continue
+            elif i > 0 and s[i] == "M" and s[i - 1] == "C":
+                count += 800
+                continue
+            else:
+                value = numerals.get(s[i], 0)
+                count += value
+        return count
+
+        """
+        :type s: str
+        :rtype: int
+        """
+        
