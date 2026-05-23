@@ -48,3 +48,28 @@ class Solution(object):
         :rtype: int
         """
         
+class Solution(object):
+    def longestCommonPrefix(self, strs):
+        com_p = ""
+        first = strs[0]
+        end_flag = False
+        if strs == None or len(strs) == 0:
+            return ""
+        for i, char in enumerate(first):
+            for word in range(len(strs)):
+                if len(strs[word]) <= i:
+                    end_flag = True
+                    break
+                if strs[word][i] != char:
+                    end_flag = True
+                    break
+            if end_flag == True:
+                return com_p
+            else:
+                com_p += char
+        return com_p
+        """
+        :type strs: List[str]
+        :rtype: str
+        """
+        
