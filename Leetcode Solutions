@@ -73,3 +73,27 @@ class Solution(object):
         :rtype: str
         """
         
+class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        seen = []
+        count = 0
+        o_count = 0
+        for i in range(len(s)):
+            if s[i] in seen:
+                idchar = seen.index(s[i])
+                seen = seen[idchar + 1:]
+                seen.append(s[i])
+                count = len(seen)
+            else:
+                seen.append(s[i])
+                count = len(seen)
+            print(count)
+            print(seen)
+            if count >= o_count:
+                o_count = count
+        return o_count
+        """
+        :type s: str
+        :rtype: int
+        """
+        
