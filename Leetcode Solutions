@@ -97,3 +97,21 @@ class Solution(object):
         :rtype: int
         """
         
+class Solution(object):
+    def reverse(self, x):
+        """
+        :type x: int
+        :rtype: int
+        """
+        xcopy = str(x)
+        reverse = ""
+        length = len(xcopy)
+        if xcopy[0] == '-':
+            reverse = '-' + xcopy[1:][::-1]
+        else:
+            reverse = xcopy[::-1]
+        reverse = int(reverse)
+        if reverse > 2147483647 or reverse < -2147483647:
+            return 0
+        else:
+            return reverse
